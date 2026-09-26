@@ -1,0 +1,36 @@
+# Environments / Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env / secrets (never commit these)
+.env
+.env.*
+!.env.example
+
+# Build outputs
+build/
+dist/
+
+# PyInstaller work artifacts
+*.spec.bak
+pyi_build.log
+
+# Setups / binaries copied to the repo root for local distribution
+*.exe
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
