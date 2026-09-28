@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 =====================================================================================
- iPhone Panic Log Diagnostics — десктопна програма для діагностики iPhone
+ iPhone Panic Log Diagnostics (PanicIF) — десктопна програма для діагностики iPhone
  за логами Panic Full (PyQt6 + pymobiledevice3)
 =====================================================================================
 
@@ -57,7 +57,7 @@
 
 У теці зі скриптом виконати:
 
-    pyinstaller --noconsole --onefile --name "iPhonePanicDiagnostics" ^
+    pyinstaller --noconsole --onefile --name "PanicIF" ^
         --collect-all pymobiledevice3 ^
         --collect-all pygments ^
         iphone_panic_diagnostics.py
@@ -72,7 +72,7 @@
     --collect-all pygments — pymobiledevice3 внутрішньо використовує
                     pygments для підсвітки виводу; часто губиться при збірці.
 
-Готовий файл з'явиться у теці dist/iPhonePanicDiagnostics.exe
+Готовий файл з'явиться у теці dist/PanicIF.exe
 
 Якщо після збірки .exe не бачить пристрій — запустіть перевірку прямо
 з .py файлу (через python) щоб виключити проблему саме збірки, і
@@ -102,6 +102,16 @@ from PyQt6.QtWidgets import (
     QFileDialog, QMessageBox, QProgressBar, QToolButton, QStackedWidget,
     QSizePolicy, QGroupBox, QGridLayout, QScrollArea, QComboBox
 )
+
+
+# =====================================================================================
+# Назва та версія продукту — ЄДИНЕ ДЖЕРЕЛО правди.
+# Spec PyInstaller (packaging/iphone_panic.spec) та інсталятор Inno Setup
+# (packaging/Setup.iss) читають їх звідси для генерації назви .exe та
+# version-resource. Змінюйте версію ТІЛЬКИ тут перед новим GitHub Release.
+# =====================================================================================
+APP_NAME = "PanicIF"
+APP_VERSION = "1.0.0"
 
 
 # =====================================================================================
@@ -2182,7 +2192,7 @@ class LogDropZone(QFrame):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("iPhone Panic Log Diagnostics")
+        self.setWindowTitle(f"{APP_NAME} {APP_VERSION}")
         self.resize(1280, 800)
 
         self.current_report: Optional[DiagnosticReport] = None
@@ -2908,7 +2918,7 @@ def main():
 
     app = QApplication(sys.argv)
     app.setStyleSheet(DARK_STYLESHEET)
-    app.setApplicationName("iPhone Panic Log Diagnostics")
+    app.setApplicationName(APP_NAME)
 
     window = MainWindow()
     window.show()

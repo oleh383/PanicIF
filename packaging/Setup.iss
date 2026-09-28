@@ -1,10 +1,10 @@
 ; -------------------------------------------------------------------------------
-;  iPhone Panic Log Diagnostics — інсталятор (Inno Setup 6+)
+;  PanicIF — інсталятор (Inno Setup 6+)
 ;
 ;  Збірка:  ISCC.exe packaging/Setup.iss   (або через build.ps1)
 ;
 ;  Що робить інсталятор:
-;    1) Встановлює застосунок (dist/iPhonePanicDiagnostics.exe) в Program Files.
+;    1) Встановлює застосунок (dist/PanicIF/ — onedir збірка PyInstaller) в Program Files.
 ;    2) ТИХО встановлює драйвери Apple Mobile Device Support (usbmuxd), якщо:
 ;         - в папці packaging/drivers лежить AppleMobileDeviceSupport64.msi
 ;           або iTunes64Setup.exe / AppleDevicesSetup.exe, І
@@ -12,25 +12,35 @@
 ;       (перевірка робиться перед запуском, повторно не ставить).
 ;
 ;  Куди покласти драйвер — див. packaging/drivers/README.txt
+;
+;  ВЕРСІЯ ПРОГРАМИ: єдине джерело — APP_VERSION у
+;  app/iphone_panic_diagnostics.py. Завжди запускайте PyInstaller ПЕРЕД ISCC:
+;  інсталятор читає ProductVersion зі зібраного dist\PanicIF\PanicIF.exe.
 ; -------------------------------------------------------------------------------
 
-#define MyAppName "iPhone Panic Log Diagnostics"
+#define MyAppName "PanicIF"
+#define MyAppExeName "PanicIF.exe"
+#define MyAppExePath AddBackslash(SourcePath) + "..\dist\PanicIF\PanicIF.exe"
+#define MyAppVersion GetStringFileInfo(MyAppExePath, "ProductVersion")
+#if Len(MyAppVersion) == 0
 #define MyAppVersion "1.0.0"
+#endif
 #define MyAppPublisher "OpenCode"
-#define MyAppExeName "iPhonePanicDiagnostics.exe"
-#define MyAppId "{{C4E1E4C2-8F0B-4B7A-9D2E-7E1A5B3F6D01}"
+#define MyAppId "{{3A2F8E9C-7B41-4D6A-9C0E-1F5B8D2A6C47}"
 
 [Setup]
 AppId={#MyAppId}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+VersionInfoVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\iPhonePanicDiagnostics
+DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=dialog commandline
 OutputDir=..\dist
-OutputBaseFilename=iPhonePanicDiagnostics-Setup
+OutputBaseFilename={#MyAppName}-Setup
 SetupIconFile=icon.ico
 Compression=lzma2/max
 SolidCompression=yes
@@ -45,7 +55,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ; Головний застосунок (onedir: вся папка PyInstaller-білда)
-Source: "..\dist\iPhonePanicDiagnostics\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\{#MyAppName}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; --- Драйвери Apple Mobile Device Support (тихол установка нижче в [Run]) ---
 ; Файли підхоплюються ЛИШЕ якщо фізично лежать у packaging/drivers.

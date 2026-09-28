@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-#  iPhone Panic Log Diagnostics - Windows installer build
+#  PanicIF - Windows installer build
 #  (ASCII only - Powershell 5.1 compatible, avoids encoding issues)
 #
 #  Usage:
@@ -7,8 +7,11 @@
 #    2) run:  powershell -ExecutionPolicy Bypass -File packaging\build.ps1
 #
 #  Results:
-#    dist\iPhonePanicDiagnostics.exe       - runnable .exe (PyInstaller)
-#    dist\iPhonePanicDiagnostics-Setup.exe - final installer (Inno Setup)
+#    dist\PanicIF\PanicIF.exe    - runnable .exe (PyInstaller onedir)
+#    dist\PanicIF-Setup.exe      - final installer (Inno Setup)
+#
+#  Version comes from APP_VERSION in app/iphone_panic_diagnostics.py
+#  (single source); installer reads ProductVersion from the built .exe.
 # ----------------------------------------------------------------------------
 
 $ErrorActionPreference = "Stop"
@@ -26,15 +29,15 @@ if (-not $PyInstaller) {
     python -m pip install --upgrade --quiet pyinstaller
 }
 
-# 2) build onedir exe (no console; DLL/.pyd/data сідають у dist\iPhonePanicDiagnostics\)
-Write-Host "==> Building iPhonePanicDiagnostics.exe (onedir, takes a few minutes)..."
+# 2) build onedir exe (no console; DLL/.pyd/data сідають у dist\PanicIF\)
+Write-Host "==> Building PanicIF.exe (onedir, takes a few minutes)..."
 python -m PyInstaller --noconfirm --clean `
     --distpath $DistDir `
     --workpath (Join-Path $ProjectRoot "build") `
     (Join-Path $Packaging "iphone_panic.spec")
 
-$AppDir   = Join-Path $DistDir "iPhonePanicDiagnostics"
-$Exe      = Join-Path $AppDir "iPhonePanicDiagnostics.exe"
+$AppDir   = Join-Path $DistDir "PanicIF"
+$Exe      = Join-Path $AppDir "PanicIF.exe"
 if (-not (Test-Path $Exe)) { throw "EXE build failed: $Exe not found" }
 $ExeSizeMB = [math]::Round((Get-Item $Exe).Length / 1MB, 1)
 $AppDirSizeMB = [math]::Round(((Get-ChildItem $AppDir -Recurse -File | Measure-Object Length -Sum).Sum) / 1MB, 1)
@@ -50,7 +53,7 @@ $Iscc = @(
 if ($Iscc) {
     Write-Host "==> Compiling installer with: $Iscc"
     & $Iscc (Join-Path $Packaging "Setup.iss")
-    $Setup = Join-Path $DistDir "iPhonePanicDiagnostics-Setup.exe"
+    $Setup = Join-Path $DistDir "PanicIF-Setup.exe"
     if (Test-Path $Setup) {
         $SetupSizeMB = [math]::Round((Get-Item $Setup).Length / 1MB, 1)
         Write-Host "==> DONE: $Setup  (${SetupSizeMB} MB)"

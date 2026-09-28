@@ -1,4 +1,4 @@
-# Збірка інсталятора Windows для «iPhone Panic Log Diagnostics»
+# Збірка інсталятора Windows для «PanicIF»
 
 Ця папка повністю готує готований установочний файл для користувача:
 запускний EXE (PyInstaller) + фінальний інсталятор (Inno Setup), який
@@ -8,8 +8,8 @@
 
 | Файл | Призначення |
 |---|---|
-| `dist/iPhonePanicDiagnostics.exe` | Запускний .exe (onefile, без консолі). Працює без встановленого Python |
-| `dist/iPhonePanicDiagnostics-Setup.exe` | **Фінальний інсталятор** — це його віддаєте користувачу |
+| `dist/PanicIF/PanicIF.exe` | Запускний .exe (onedir, без консолі). Працює без встановленого Python |
+| `dist/PanicIF-Setup.exe` | **Фінальний інсталятор** — це його віддаєте користувачу |
 | `app/iphone_panic_diagnostics.py` | Копія вихідного коду, з якої збирається EXE |
 | `packaging/iphone_panic.spec` | Конфігурація PyInstaller (включно з pymobiledevice3) |
 | `packaging/Setup.iss` | Конфігурація Inno Setup (тиха установка драйверів) |
@@ -56,7 +56,7 @@ powershell -ExecutionPolicy Bypass -File packaging\build.ps1
 
 ## Як розповсюджувати
 
-1. Віддайте файл `dist/iPhonePanicDiagnostics-Setup.exe`.
+1. Віддайте файл `dist/PanicIF-Setup.exe`.
 2. Користувач запускає його: ставиться додаток + драйвери (якщо потрібно).
 3. Після установки з'являється ярлик на робочому столі та в меню «Пуск».
 4. iPhone підключається USB-кабелем; перше підключення — натиснути
@@ -73,8 +73,8 @@ powershell -ExecutionPolicy Bypass -File packaging\build.ps1
 
    ```powershell
    signtool sign /f "cert.pfx" /p "ПАРОЛЬ" /tr http://timestamp.digicert.com /td sha256 /fd sha256 `
-       "dist\iPhonePanicDiagnostics.exe" ``
-       "dist\iPhonePanicDiagnostics-Setup.exe"
+       "dist\PanicIF\PanicIF.exe" ``
+       "dist\PanicIF-Setup.exe"
    ```
 
 4. У `Setup.iss` розкоментуйте рядок `SignTool=signtool $f` (після
@@ -83,8 +83,8 @@ powershell -ExecutionPolicy Bypass -File packaging\build.ps1
 
 ## Обмеження
 
-- Розмір ~75 МБ через повну збірку PyQt6 + pymobiledevice3.
+- Розмір інсталятора ~90 МБ через повну збірку PyQt6 + pymobiledevice3.
 - Для роботи з пристроєм на iOS 17+ сучасніші моделі можуть потребувати
   застосунок Apple Devices замість iTunes — див. `packaging/drivers/README.txt`.
-- Перший запуск onefile EXE розпаковується у тимчасову папку — запуск
-  триває 2–5 секунд.
+- onedir-збірка: EXE запускається швидко, але поруч із ним зберігається
+  вся папка `PanicIF\` (DLL, моделі OCR) — це нормальний режим роботи.

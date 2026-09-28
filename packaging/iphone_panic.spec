@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 #
-# PyInstaller spec для iPhone Panic Log Diagnostics — оптимізована версія.
+# PyInstaller spec для PanicIF — оптимізована версія.
 # Збірка:  python -m PyInstaller --noconfirm --clean packaging/iphone_panic.spec
 #
 # Оптимізації (порівняно з попередньою версією):
@@ -25,6 +25,73 @@ import os
 PROJECT_ROOT = os.path.dirname(SPECPATH)
 if not PROJECT_ROOT:
     PROJECT_ROOT = os.getcwd()
+
+# ---------------------------------------------------------------------------
+# Назва продукту та версія — ЄДИНЕ ДЖЕРЕЛО: константи в app/iphone_panic_diagnostics.py
+# (APP_NAME / APP_VERSION). Spec читає їх звідси, щоб генерувати назву .exe,
+# папки onedir та version-resource (для версії у властивостях файлу), який далі
+# читає Inno Setup (packaging/Setup.iss) для поля AppVersion.
+# ---------------------------------------------------------------------------
+import re as _re
+
+_APP_META_FILE = os.path.join(PROJECT_ROOT, "app", "iphone_panic_diagnostics.py")
+with open(_APP_META_FILE, encoding="utf-8") as _f:
+    _APP_SRC = _f.read()
+
+
+def _app_meta(key):
+    _m = _re.search(rf'^{key}\s*=\s*"([^"]+)"', _APP_SRC, _re.MULTILINE)
+    if not _m:
+        raise RuntimeError(f"Не знайдено константу {key} у app/iphone_panic_diagnostics.py")
+    return _m.group(1)
+
+
+APP_NAME = _app_meta("APP_NAME")
+APP_VERSION = _app_meta("APP_VERSION")
+
+# Version-resource для EXE (деталі у Properties файлу: ProductName, ProductVersion...)
+from PyInstaller.utils.win32.versioninfo import (
+    VSVersionInfo,
+    FixedFileInfo,
+    StringFileInfo,
+    StringTable,
+    StringStruct,
+    VarFileInfo,
+    VarStruct,
+)
+
+_maj, _min, _pat = (int(_x) for _x in APP_VERSION.split("."))
+VERSION_RESOURCE = VSVersionInfo(
+    ffi=FixedFileInfo(
+        filevers=(_maj, _min, _pat, 0),
+        prodvers=(_maj, _min, _pat, 0),
+        mask=0x3f,
+        flags=0x0,
+        OS=0x40004,
+        fileType=0x1,
+        subtype=0x0,
+        date=(0, 0),
+    ),
+    kids=[
+        StringFileInfo(
+            [
+                StringTable(
+                    "000004b0",
+                    [
+                        StringStruct("CompanyName", APP_NAME),
+                        StringStruct("FileDescription", APP_NAME),
+                        StringStruct("FileVersion", APP_VERSION),
+                        StringStruct("InternalName", APP_NAME),
+                        StringStruct("OriginalFilename", APP_NAME + ".exe"),
+                        StringStruct("ProductName", APP_NAME),
+                        StringStruct("ProductVersion", APP_VERSION),
+                    ],
+                )
+            ]
+        ),
+        VarFileInfo([VarStruct("Translation", [1033, 1200])]),
+    ],
+)
 
 datas = []
 binaries = []
@@ -192,8 +259,8 @@ a.datas = [(_d, _s, _t) for (_d, _s, _t) in a.datas if _keep_translation(_d)]
 pyz = PYZ(a.pure)
 
 # ---------------------------------------------------------------------------
-# onedir-режим: pyzm/bootloader в EXE, решта (DLL, .pyd, datas) — папка
-# iPhonePanicDiagnostics/ поруч. Швидший і стабільніший старт (без розпаковки
+# onedir-режим: pyzm/bootloader в EXE, решта (DLL, .pyd, datas) — папка PanicIF/
+# поруч. Швидший і стабільніший старт (без розпаковки
 # в %TEMP%), антивируси менше скаржаться. Встановлений розмір більший
 # (~94 МБ vs ~45 МБ), але старт миттєвий — це обраний компроміс.
 # ---------------------------------------------------------------------------
@@ -202,7 +269,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="iPhonePanicDiagnostics",
+    name=APP_NAME,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -215,6 +282,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    version=VERSION_RESOURCE,
     icon=os.path.join(SPECPATH, "icon.ico"),
 )
 
@@ -225,5 +293,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="iPhonePanicDiagnostics",
+    name=APP_NAME,
 )
