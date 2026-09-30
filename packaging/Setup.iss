@@ -23,7 +23,7 @@
 #define MyAppExePath AddBackslash(SourcePath) + "..\dist\PanicIF\PanicIF.exe"
 #define MyAppVersion GetStringFileInfo(MyAppExePath, "ProductVersion")
 #if Len(MyAppVersion) == 0
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #endif
 #define MyAppPublisher "OpenCode"
 #define MyAppId "{{3A2F8E9C-7B41-4D6A-9C0E-1F5B8D2A6C47}"
