@@ -115,6 +115,32 @@ APP_VERSION = "1.0.0"
 
 
 # =====================================================================================
+# Модуль перевірки оновлень (app/updater.py). Додаємо теку модуля на шлях пошуку,
+# щоб 'import updater' працював і з вихідного коду, і у збірці PyInstaller.
+# =====================================================================================
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+if _APP_DIR not in sys.path:
+    sys.path.insert(0, _APP_DIR)
+
+from updater import (  # noqa: E402
+    UpdaterError,
+    UpdaterDataError,
+    UpdaterIntegrityError,
+    UpdaterNetworkError,
+    UpdaterServerError,
+    is_update_available,
+    fetch_latest_release,
+    get_latest_tag,
+    get_installer_asset,
+    get_digest_asset,
+    download_asset,
+    fetch_digest,
+    digest_matches,
+    launch_installer,
+)
+
+
+# =====================================================================================
 # 1. БАЗА ЗНАНЬ: RegEx-мапінг "ключове слово в лозі" -> "несправний компонент"
 # =====================================================================================
 # Кожен запис: {
@@ -1756,6 +1782,81 @@ class OcrWorker(QThread):
             self.failed.emit(str(exc))
 
 
+class UpdateCheckWorker(QThread):
+    """Фоновий потік: перевірка latest release PanicIF на GitHub.
+
+    Мережевий запит виконується поза GUI-потоком (із таймаутом), щоб вікно
+    не зависало. Результат: `result(dict)` або `failed(kind)`.
+    """
+
+    result = pyqtSignal(dict)
+    failed = pyqtSignal(str, str)  # (kind, detail)
+
+    def __init__(self, current_version: str, parent=None):
+        super().__init__(parent)
+        self.current_version = current_version
+
+    def run(self):
+        try:
+            release = fetch_latest_release()
+            latest = get_latest_tag(release)
+            available = is_update_available(self.current_version, latest)
+            self.result.emit(
+                {
+                    "available": available,
+                    "latest": latest,
+                    "release": release,
+                }
+            )
+        except UpdaterError as exc:
+            self._emit_error(exc)
+        except Exception as exc:  # noqa: BLE001
+            self.failed.emit("unknown", str(exc))
+
+    def _emit_error(self, exc):
+        if isinstance(exc, UpdaterNetworkError):
+            kind = "network"
+        elif isinstance(exc, UpdaterServerError):
+            kind = "server"
+        elif isinstance(exc, UpdaterIntegrityError):
+            kind = "integrity"
+        else:
+            kind = "data"
+        self.failed.emit(kind, str(exc))
+
+
+class UpdateDownloadWorker(QThread):
+    """Фоновий потік: завантаження PanicIF-Setup.exe та перевірка цілісності."""
+
+    progress = pyqtSignal(int, int)  # (bytes, total або -1)
+    downloaded = pyqtSignal(str)
+    failed = pyqtSignal(str, str)  # (kind, detail)
+
+    def __init__(self, url: str, digest_url: str = "", parent=None):
+        super().__init__(parent)
+        self.url = url
+        self.digest_url = digest_url
+
+    def run(self):
+        try:
+            path = download_asset(self.url, progress_callback=self._report_progress)
+            if self.digest_url:
+                expected = fetch_digest(self.digest_url)
+                if expected and not digest_matches(path, expected):
+                    self.failed.emit("integrity", "SHA-256 не збігається.")
+                    return
+            self.downloaded.emit(path)
+        except (UpdaterDataError, UpdaterNetworkError) as exc:
+            self.failed.emit("download", str(exc))
+        except UpdaterIntegrityError:
+            self.failed.emit("integrity", "SHA-256 не збігається.")
+        except Exception as exc:  # noqa: BLE001
+            self.failed.emit("unknown", str(exc))
+
+    def _report_progress(self, got: int, total):
+        self.progress.emit(got, total if total else -1)
+
+
 # =====================================================================================
 # 5. ЕКСПОРТ ЗВІТУ (TXT / PDF)
 # =====================================================================================
@@ -2362,6 +2463,9 @@ class MainWindow(QMainWindow):
         self.view_mode_btn.setCheckable(True)
         layout.addWidget(self.view_mode_btn)
 
+        self.check_update_btn = QPushButton("⤓ Перевірити оновлення")
+        layout.addWidget(self.check_update_btn)
+
         layout.addStretch(1)
 
         donate_box = QWidget()
@@ -2400,6 +2504,7 @@ class MainWindow(QMainWindow):
         self.donate_btn.clicked.connect(self._on_donate_clicked)
         self.install_btn.clicked.connect(self._on_install_clicked)
         self.model_combo.currentIndexChanged.connect(self._on_model_changed)
+        self.check_update_btn.clicked.connect(self._on_check_update_clicked)
 
         # Перевірка наявності бібліотеки pymobiledevice3
         try:
@@ -2873,6 +2978,117 @@ class MainWindow(QMainWindow):
             self.raw_text_edit.textCursor().MoveOperation.Start
         )
         self._raw_view_active = True
+
+    # -------------------------------------------------------------- ОНОВЛЕННЯ
+    _UPDATE_FRIENDLY = {
+        "network": "Не вдалося перевірити оновлення. Перевірте підключення до Інтернету.",
+        "server": "Сервер оновлень тимчасово недоступний. Спробуйте пізніше.",
+        "data": "Не вдалося перевірити оновлення. Спробуйте пізніше.",
+        "integrity": "Не вдалося перевірити цілісність оновлення. Встановлення скасовано.",
+        "download": "Не вдалося завантажити оновлення.",
+        "unknown": "Сталася неочікувана помилка під час перевірки оновлень.",
+    }
+
+    def _on_check_update_clicked(self):
+        self._latest_release = None
+        self.check_update_btn.setEnabled(False)
+        self.check_update_btn.setText("Перевірка оновлень...")
+        self.update_check_worker = UpdateCheckWorker(current_version=APP_VERSION)
+        self.update_check_worker.result.connect(self._on_update_check_result)
+        self.update_check_worker.failed.connect(self._on_update_check_failed)
+        self.update_check_worker.finished.connect(self._on_update_worker_finished)
+        self.update_check_worker.start()
+
+    def _on_update_worker_finished(self):
+        self.check_update_btn.setEnabled(True)
+        self.check_update_btn.setText("⤓ Перевірити оновлення")
+
+    def _on_update_check_failed(self, kind: str, _detail: str):
+        QMessageBox.warning(
+            self, "Оновлення",
+            self._UPDATE_FRIENDLY.get(kind, self._UPDATE_FRIENDLY["unknown"]),
+        )
+
+    def _on_update_check_result(self, data: dict):
+        self._latest_release = data.get("release") or {}
+        if not data.get("available"):
+            QMessageBox.information(
+                self, "Оновлення",
+                f"У вас встановлена остання версія {APP_NAME} {APP_VERSION}.",
+            )
+            return
+        latest = data.get("latest", "")
+        asset = get_installer_asset(self._latest_release)
+        if not asset:
+            QMessageBox.information(
+                self, "Оновлення",
+                "Для цієї версії не знайдено інсталятор PanicIF-Setup.exe.",
+            )
+            return
+        mb = QMessageBox(self)
+        mb.setWindowTitle("Оновлення")
+        mb.setIcon(QMessageBox.Icon.Question)
+        mb.setText(
+            f"Доступна нова версія {APP_NAME} {latest}.\n\n"
+            f"Встановлена версія: {APP_VERSION}\n"
+            f"Нова версія: {latest}\n\n"
+            "Бажаєте завантажити та встановити оновлення?"
+        )
+        update_btn = mb.addButton("Оновити", QMessageBox.ButtonRole.AcceptRole)
+        cancel_btn = mb.addButton("Скасувати", QMessageBox.ButtonRole.RejectRole)
+        mb.setDefaultButton(cancel_btn)
+        mb.exec()
+        if mb.clickedButton() is not update_btn:
+            return
+        digest = get_digest_asset(self._latest_release) or {}
+        self.check_update_btn.setEnabled(False)
+        self.check_update_btn.setText("Завантаження оновлення... 0%")
+        self.update_download_worker = UpdateDownloadWorker(
+            url=asset.get("browser_download_url", ""),
+            digest_url=digest.get("browser_download_url", "") or "",
+        )
+        self.update_download_worker.progress.connect(self._on_update_download_progress)
+        self.update_download_worker.downloaded.connect(self._on_update_downloaded)
+        self.update_download_worker.failed.connect(self._on_update_download_failed)
+        self.update_download_worker.finished.connect(self._on_update_worker_finished)
+        self.update_download_worker.start()
+
+    def _on_update_download_progress(self, got: int, total: int):
+        if total and total > 0:
+            percent = max(0, min(100, int(got * 100 / total)))
+            self.check_update_btn.setText(f"Завантаження оновлення... {percent}%")
+        else:
+            self.check_update_btn.setText("Завантаження оновлення...")
+
+    def _on_update_download_failed(self, kind: str, _detail: str):
+        QMessageBox.critical(
+            self, "Оновлення",
+            self._UPDATE_FRIENDLY.get(kind, self._UPDATE_FRIENDLY["unknown"]),
+        )
+
+    def _on_update_downloaded(self, path: str):
+        mb = QMessageBox(self)
+        mb.setWindowTitle("Встановлення оновлення")
+        mb.setIcon(QMessageBox.Icon.Question)
+        mb.setText(
+            "Оновлення завантажено. PanicIF буде закрито, після чого "
+            "запуститься інсталятор нової версії."
+        )
+        install_btn = mb.addButton("Встановити", QMessageBox.ButtonRole.AcceptRole)
+        cancel_btn = mb.addButton("Скасувати", QMessageBox.ButtonRole.RejectRole)
+        mb.setDefaultButton(cancel_btn)
+        mb.exec()
+        if mb.clickedButton() is not install_btn:
+            return
+        try:
+            launch_installer(path)
+        except UpdaterError:
+            QMessageBox.critical(
+                self, "Оновлення",
+                "Не вдалося запустити інсталятор оновлення.",
+            )
+            return
+        QApplication.instance().quit()
 
     def _on_donate_clicked(self):
         QDesktopServices.openUrl(QUrl("https://send.monobank.ua/jar/ZazdhqcJa"))
