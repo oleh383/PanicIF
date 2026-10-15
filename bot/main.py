@@ -26,6 +26,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import signal
 import weakref
 from io import BytesIO
 
@@ -367,8 +368,46 @@ def build_application(token: str) -> Application:
     return application
 
 
+async def run_bot(application: Application) -> None:
+    """Асинхронно запустити бот (python-telegram-bot 21+) до сигналу зупинки.
+
+    Явний життєвий цикл ``initialize`` → ``start`` → ``start_polling``
+    використовується, коли головна функція вже виконується всередині циклу
+    подій (через :func:`asyncio.run`). Updater і застосунок коректно
+    зупиняються за SIGINT/SIGTERM — це важливо на сервері, де Render надсилає
+    SIGTERM під час перезапуску.
+    """
+    await application.initialize()
+    await application.start()
+
+    updater = application.updater
+    if updater is None:
+        raise RuntimeError("Застосунок без Updater: polling недоступний.")
+    await updater.start_polling(allowed_updates=Update.ALL_TYPES)
+
+    stop_signal = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    handled_signals = []
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, stop_signal.set)
+            handled_signals.append(sig)
+        except (NotImplementedError, RuntimeError, ValueError):
+            continue
+
+    try:
+        await stop_signal.wait()
+    finally:
+        for sig in handled_signals:
+            with contextlib.suppress(NotImplementedError, RuntimeError, ValueError):
+                loop.remove_signal_handler(sig)
+        await updater.stop()
+        await application.stop()
+        await application.shutdown()
+
+
 def main() -> None:
-    """Налаштувати логування, перевірити токен і запустити бота."""
+    """Точка входу: налаштувати логування, перевірити токен і запустити бот."""
     configure_logging()
     _load_dotenv_if_available()
 
@@ -380,7 +419,7 @@ def main() -> None:
 
     logger.info("Запуск PanicIF Bot…")
     application = build_application(token)
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    asyncio.run(run_bot(application))
 
 
 if __name__ == "__main__":
