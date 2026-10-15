@@ -1,0 +1,12 @@
+# Telegram-бот PanicIF (аналіз panic-логів + OCR фото)
+# Встановлення:  python -m pip install -r requirements-bot.txt
+python-telegram-bot>=21.0,<22
+python-dotenv>=1.0,<2
+
+# OCR (наявний рушій PanicIF: RapidOCR на ONNX Runtime, офлайн).
+# Потрібні для розпізнавання тексту з фото/скріншотів.
+numpy
+opencv-python
+rapidocr_onnxruntime
+
+# Примітка: PyQt6 свідомо НЕ входить — бот не використовує GUI.

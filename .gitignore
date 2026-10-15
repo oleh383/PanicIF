@@ -1,5 +1,6 @@
 # Environments / Python virtual environments
 .venv/
+.venv-bot/
 venv/
 env/
 ENV/
@@ -34,3 +35,8 @@ pyi_build.log
 *.swp
 .DS_Store
 Thumbs.db
+
+# Telegram bot
+bot/.env
+bot/.env.*
+!bot/.env.example
