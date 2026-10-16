@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Тести запуску PanicIF Bot: асинхронний життєвий цикл для python-telegram-bot 21+."""
+"""Тести запуску PanicIF Bot: асинхронний життєвий цикл (python-telegram-bot 21+)
+та мінімальний HTTP health-сервер для Render. Мережа назовні не використовується.
+"""
 
 import asyncio
+import http.client
+import os
 import unittest
 from unittest import mock
 
@@ -84,10 +88,13 @@ class RunBotLifecycleTests(unittest.IsolatedAsyncioTestCase):
         with mock.patch.object(
             self.bot_main, "require_bot_token", return_value="123:token"
         ), mock.patch.object(
+            self.bot_main, "start_http_server"
+        ) as http_server, mock.patch.object(
             self.bot_main, "build_application", return_value=app
         ) as build, mock.patch.object(self.bot_main.asyncio, "run") as run:
             self.bot_main.main()
 
+        http_server.assert_called_once_with()
         build.assert_called_once_with("123:token")
         self.assertEqual(run.call_count, 1)
         run.call_args.args[0].close()
@@ -97,10 +104,54 @@ class RunBotLifecycleTests(unittest.IsolatedAsyncioTestCase):
             self.bot_main,
             "require_bot_token",
             side_effect=self.bot_main.BotConfigError("немає токена"),
-        ):
+        ), mock.patch.object(self.bot_main, "start_http_server") as http_server:
             with self.assertRaises(SystemExit) as ctx:
                 self.bot_main.main()
         self.assertEqual(ctx.exception.code, 1)
+        http_server.assert_not_called()
+
+
+class HealthServerTests(unittest.TestCase):
+    """HTTP health-сервер для Render (без мережі назовні, лише localhost)."""
+
+    def setUp(self):
+        from bot import main as bot_main
+
+        self.bot_main = bot_main
+
+    def test_port_defaults_when_env_unset(self):
+        with mock.patch.dict(os.environ, {"PORT": ""}):
+            self.assertEqual(
+                self.bot_main._resolve_http_port(), self.bot_main.DEFAULT_HTTP_PORT
+            )
+
+    def test_port_read_from_env(self):
+        with mock.patch.dict(os.environ, {"PORT": "12345"}):
+            self.assertEqual(self.bot_main._resolve_http_port(), 12345)
+
+    def test_port_invalid_falls_back_to_default(self):
+        for bad in ("abc", "-1", "70000", "   "):
+            with mock.patch.dict(os.environ, {"PORT": bad}):
+                self.assertEqual(
+                    self.bot_main._resolve_http_port(),
+                    self.bot_main.DEFAULT_HTTP_PORT,
+                    bad,
+                )
+
+    def test_http_server_serves_ok(self):
+        server = self.bot_main.start_http_server(port=0)
+        try:
+            port = server.server_address[1]
+            conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            conn.request("GET", "/")
+            response = conn.getresponse()
+            body = response.read()
+            conn.close()
+            self.assertEqual(response.status, 200)
+            self.assertIn(b"running", body)
+        finally:
+            server.shutdown()
+            server.server_close()
 
 
 if __name__ == "__main__":

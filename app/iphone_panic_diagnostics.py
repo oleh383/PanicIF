@@ -156,6 +156,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"Prs0|Pressure Controller|Eiger\.cpp",
         "keyword": "Prs0 / Pressure Controller / Eiger.cpp",
+        "notes": "Ця помилка виникає переважно на iPhone XS і вище; барометр розташований на системному шлейфі знизу біля лівого мікрофона. SD: 1 Missing sensor(s): Prs0 — барометр пошкоджений або пошкоджені його лінії.",
         "component": "Нижній шлейф (зарядки)",
         "recommendation": (
             "Датчик барометра (Prs0) не відповідає. Замініть нижній шлейф "
@@ -167,6 +168,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"TG0B|TG0V|TG0P|TG0D|SD:\s*0\s*Missing sensor\(s\):\s*TG0",
         "keyword": "TG0B / TG0V / TG0P / TG0D (Tigris)",
+        "notes": "Пристрій не бачить акумулятор (SD: 0 Missing sensor(s): TG0B).",
         "component": "Акумулятор / Контролер Tigris",
         "recommendation": (
             "Відсутній контакт BSI, критичний знос АКБ або несправний "
@@ -179,6 +181,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"\bmic1\b",
         "keyword": "mic1",
+        "notes": "mic1 — нижній лівий мікрофон. Часто трапляється після потрапляння води або механічного впливу.",
         "component": "Нижній шлейф",
         "recommendation": (
             "Помилка нижнього лівого мікрофона. Замініть нижній шлейф "
@@ -190,6 +193,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"\bmic2\b|mic-temp-sens2",
         "keyword": "mic2 / mic-temp-sens2",
+        "notes": "mic2 — біля спалаху/ліхтарика. Часто трапляється на iPhone 11.",
         "component": "Верхній шлейф спалаху",
         "recommendation": "Мікрофон біля камери/спалаху. Замініть шлейф спалаху.",
         "severity": "warning",
@@ -197,6 +201,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"\bmic3\b",
         "keyword": "mic3",
+        "notes": "mic3 — біля фронтальної камери.",
         "component": "Верхній шлейф датчиків",
         "recommendation": "Мікрофон біля фронтальної камери. Замініть верхній шлейф датчиків.",
         "severity": "warning",
@@ -204,6 +209,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"\bmic4\b",
         "keyword": "mic4",
+        "notes": "mic4 — нижній правий мікрофон.",
         "component": "Нижній шлейф",
         "recommendation": "Помилка нижнього правого мікрофона. Замініть нижній шлейф.",
         "severity": "warning",
@@ -211,6 +217,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"\bprox\b|SCMto:0-prox|SCMto:1-prox",
         "keyword": "prox / SCMto:0-prox / SCMto:1-prox",
+        "notes": "Датчик наближення; зазвичай після потрапляння води спричиняє перезавантаження телефона.",
         "component": "Верхній шлейф",
         "recommendation": "Несправність датчика наближення (Proximity). Замініть верхній шлейф.",
         "severity": "warning",
@@ -228,6 +235,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"power\(2\)|power\(1\)",
         "keyword": "power(1) / power(2)",
+        "notes": "power(1)-failed to transition — рядок типу Void.",
         "component": "Верхній шлейф / PMU",
         "recommendation": (
             "Проблема кнопки увімкнення живлення або контролера живлення (PMU). "
@@ -245,6 +253,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"NO pulse on",
         "keyword": "NO pulse on",
+        "notes": "Часто роз'єм має корозію.",
         "component": "Taptic Engine / Нижній шлейф",
         "recommendation": (
             "Немає імпульсу від вібромотору. Перевірте/замініть Taptic Engine "
@@ -274,6 +283,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"i2c3.*Roswell|display-eeprom|Lm3539|SCL display PMU|DCP PANIC|MIPIDSI",
         "keyword": "Roswell / display-eeprom / Lm3539 / DCP PANIC / MIPIDSI",
+        "notes": "SCL display — драйвер зображення (PMU). На моделях Plus, щоб визначити, який із двох драйверів lm3539, дивіться в логу лінію I2C.",
         "component": "Дисплейний модуль",
         "recommendation": (
             "Несправний дисплей, шлейф тачскріна або драйвер підсвітки/дисплея. "
@@ -291,6 +301,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"AppleCS42L77Audio|AppleCS42L75Audio|(?<!AOP)ad5860|H3K5 Tglon",
         "keyword": "AppleCS42L77/75Audio / ad5860 / H3K5 Tglon",
+        "notes": "H3K5 Tglon — аудіокодек/підсилювачі.",
         "component": "Аудіокодек",
         "recommendation": (
             "Помилка аудіосистеми на рівні кодека. Перекатайте (реболл) або "
@@ -301,6 +312,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"AppleBCMWLAN|apcie\(wlan\)|apcie\(bt\)",
         "keyword": "AppleBCMWLAN / apcie(wlan) / apcie(bt)",
+        "notes": "WF/BT. apcie(wlan) — Wi-Fi; apcie(bt) — Bluetooth.",
         "component": "Wi-Fi / Bluetooth",
         "recommendation": (
             "Несправність модуля Wi-Fi/Bluetooth або його обвʼязки на платі. "
@@ -321,6 +333,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"Apple tristar2|Dart-USB",
         "keyword": "Apple tristar2 / Dart-USB",
+        "notes": "Контролер заряджання або його лінії між Tigris і Tristar.",
         "component": "Контролер Tristar / Hydra / Kraken",
         "recommendation": (
             "Проблема з контролером зарядки/USB (Tristar/Hydra/Kraken) або "
@@ -334,6 +347,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"\bANS\b|\bANS2\b|\bnvme\b|apcie\(0\)|Ememory",
         "keyword": "ANS / ANS2 / nvme / apcie(0) / Ememory",
+        "notes": "NAND із шиною PCIe. Переважно виникає через NAND, але в логах додатково шукайте ключові слова.",
         "component": "Пам'ять NAND",
         "recommendation": (
             "Несправність флеш-пам'яті NAND. Спробуйте повне відновлення "
@@ -345,6 +359,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"Kernel data abort|Kernel instruction fetch|GFX GPU|@zalloc|@kalloc",
         "keyword": "Kernel data abort / GFX GPU / @zalloc / @kalloc",
+        "notes": "Переважно через від'єднання процесора або котушок у лініях buck. Також у логу іноді трапляються конкретні лінії та елементи зі схем.",
         "component": "Процесор (CPU)",
         "recommendation": (
             "Ознаки відвалу або деградації процесора/графічного ядра "
@@ -356,6 +371,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"AppleSocHot",
         "keyword": "AppleSocHot",
+        "notes": "Зустрічав лише на моделях iPhone 7. Переважно через КП, але траплявся й обрив лінії AP_TO_PMU_SOCHOT_L від ЦП до КП.",
         "component": "Перегрів CPU / PMU",
         "recommendation": (
             "Спрацював тепловий захист SoC. Ймовірне коротке замикання на "
@@ -367,6 +383,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"AGXG10P BONMI",
         "keyword": "AGXG10P BONMI",
+        "notes": "Пробиті гільзи/втулки.",
         "component": "Материнська плата (Sandwich)",
         "recommendation": (
             "Обрив шарів міжплатної зборки ('сендвіча'), типово після падіння. "
@@ -377,6 +394,7 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
     {
         "pattern": r"Firmware fatal|vfs_cluster|SIGNAL, code 9",
         "keyword": "Firmware fatal / vfs_cluster / SIGNAL code 9",
+        "notes": "Допомагає перепрошивання.",
         "component": "ПЗ / Файлова система",
         "recommendation": (
             "Схоже на програмний збій (не апаратний). Відновіть пристрій "
@@ -385,16 +403,181 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
         ),
         "severity": "info",
     },
+    # --- Г. Розширення з перекладу "PanicIF_ukrainian_translation" ---
+    # Нові рядки таблиці (ДАНІ -> РЕЗУЛЬТАТ) з колонкою ПРИМІТКИ.
+    {
+        "pattern": r"\bL2C\b|\bLLC\b",
+        "keyword": "L2C / LLC",
+        "component": "Північний підсилювач",
+        "recommendation": "Перевірте передній шлейф і котушку LX у ланцюзі підсилення звуку.",
+        "severity": "warning",
+        "notes": "Зустрічав на багатьох моделях; іноді проблема у передньому "
+                 "шлейфі та пробитій котушці LX у ланцюзі підсилення звуку.",
+    },
+    {
+        "pattern": r"Prev-next|\bLSU\b",
+        "keyword": "Prev-next / LSU",
+        "component": "Кварцовий генератор годинника",
+        "recommendation": "Перевірте/замініть кварцовий генератор (RTC).",
+        "severity": "warning",
+        "notes": "Зустрічав лише на iPhone 5c.",
+    },
+    {
+        "pattern": r"Initproc exited",
+        "keyword": "Initproc exited",
+        "component": "Кварцовий генератор",
+        "recommendation": "Перевірте кварцовий генератор і ланцюг завдання такту.",
+        "severity": "warning",
+        "notes": "",
+    },
+    {
+        "pattern": r"Inva(l|i)d queue element linkage",
+        "keyword": "Invaild queue element linkage",
+        "component": "NAND",
+        "recommendation": "Несправність NAND: DFU-відновлення, далі реболл/заміна NAND.",
+        "severity": "critical",
+        "notes": "",
+    },
+    {
+        "pattern": r"SMC PANIC ASSERTION",
+        "keyword": "SMC PANIC ASSERTION",
+        "component": "Процесор / верхня плата",
+        "recommendation": "Перевірте верхню плату/процесор; типова ознака після втручання або перегріву.",
+        "severity": "critical",
+        "notes": "Зустрічав на моделях iPhone X і новіших.",
+    },
+    {
+        "pattern": r"SEP ROM to glon|SMC DATA ABORT",
+        "keyword": "SEP ROM to glon SMC DATA ABORT",
+        "component": "CPU",
+        "recommendation": "Перевірте процесор; також будь-який елемент, який має сертифікати (SEP).",
+        "severity": "warning",
+        "notes": "Також причиною може бути будь-який елемент, який має сертифікати.",
+    },
+    {
+        "pattern": r"CP_COM_NORM|CP_com_NORM",
+        "keyword": "CP_COM_NORM REQUEST",
+        "component": "CPU / NAND / камера",
+        "recommendation": "Неоднозначна помилка — шукайте в логу додаткові ключові слова.",
+        "severity": "info",
+        "notes": "Неоднозначна помилка, шукайте в логу більше ключових слів.",
+    },
+    {
+        "pattern": r"PMP NMI FIQ",
+        "keyword": "PMP NMI FIQ",
+        "component": "CPU / котушки / КП",
+        "recommendation": "Неоднозначна помилка: перевірте процесор, котушки та контролер живлення.",
+        "severity": "info",
+        "notes": "Неоднозначна помилка.",
+    },
+    {
+        "pattern": r"applesynopsysMIPID",
+        "keyword": "applesynopsysMIPIDSI controller",
+        "component": "Передній шлейф / on-off",
+        "recommendation": "Перевірте передній шлейф і ланцюг живлення/on-off.",
+        "severity": "warning",
+        "notes": "",
+    },
+    {
+        "pattern": r"Anc-postnand",
+        "keyword": "Anc-postnand.c1260 assert failed link",
+        "component": "NAND",
+        "recommendation": "Несправність NAND: DFU-відновлення, далі реболл/заміна NAND.",
+        "severity": "critical",
+        "notes": "",
+    },
+    {
+        "pattern": r"Stacks\+routined",
+        "keyword": "Stacks+routined",
+        "component": "Акумулятор",
+        "recommendation": "Перевірте акумулятор і його контакти.",
+        "severity": "warning",
+        "notes": "Трапляється переважно на iPad.",
+    },
+    {
+        "pattern": r"\bAGXK\b",
+        "keyword": "AGXK",
+        "component": "AGXAccelerator (гіроскоп / акселерометр)",
+        "recommendation": "Перевірте гіроскоп/акселерометр та його шлейф.",
+        "severity": "warning",
+        "notes": "Гіроскоп/акселерометр.",
+    },
+    {
+        "pattern": r"Sleep.{0,2}wake hang detected",
+        "keyword": "Sleep\\wake hang detected",
+        "component": "Wi-Fi / кодек / підсилювачі",
+        "recommendation": "Неоднозначне зависання у сні — шукайте додаткові ключові слова в логу.",
+        "severity": "info",
+        "notes": "Неоднозначна помилка зависання в режимі сну; шукайте ключові слова в логу.",
+    },
+    {
+        "pattern": r"WKDMD ERROR",
+        "keyword": "WKDMD ERROR code 0x2",
+        "component": "Помилка пам'яті",
+        "recommendation": "Під час прошивання отримаєте Error 14 (APFS); перевірте NAND.",
+        "severity": "warning",
+        "notes": "Під час прошивання отримаєте Error 14 (APFS).",
+    },
+    {
+        "pattern": r"Apple PPM",
+        "keyword": "Apple PPM",
+        "component": "Lightning / Tristar / Tigris",
+        "recommendation": "Помилка під час заряджання — перевірте Tristar/Tigris і роз'єм.",
+        "severity": "warning",
+        "notes": "Помилка виникає під час заряджання.",
+    },
+    {
+        "pattern": r"Fatal coherency point error",
+        "keyword": "Fatal coherency point error",
+        "component": "CPU",
+        "recommendation": "Перевірте процесор і пам'ять; типова ознака збою когерентності.",
+        "severity": "warning",
+        "notes": "",
+    },
+    {
+        "pattern": r"\bgnss\b",
+        "keyword": "gnss",
+        "component": "GLONASS / GPS",
+        "recommendation": "Перевірте GPS-модуль та його антену.",
+        "severity": "warning",
+        "notes": "",
+    },
+    {
+        "pattern": r"AOP PANIC",
+        "keyword": "AOP PANIC",
+        "component": "AOP (неоднозначно)",
+        "recommendation": "Шукайте в логу додаткові ключові слова.",
+        "severity": "info",
+        "notes": "Неоднозначна помилка, шукайте ключові слова в логу.",
+    },
 ]
 
 
 def _compile_knowledge_base(raw_kb: List[Dict[str, str]]):
+    """Скомпілювати правила та прибрати дублікати.
+
+    Стійкість до дублікатів: якщо у :data:`RAW_KNOWLEDGE_BASE` випадково є
+    кілька записів з однаковим ``pattern`` або ``keyword``, залишається лише
+    ПЕРШИЙ (порядок визначає пріоритет). Це гарантує, що кожне ключове слово
+    дає щонайбільше одну знахідку і що оновлення бази не створює «тіней».
+    """
     compiled = []
+    seen_patterns = set()
+    seen_keywords = set()
     for entry in raw_kb:
+        pattern = entry.get("pattern")
+        keyword = entry.get("keyword")
+        if not pattern or not keyword:
+            continue
+        if pattern in seen_patterns or keyword in seen_keywords:
+            # Дубль (типово після злиття перекладів) — пропускаємо.
+            continue
         try:
-            rx = re.compile(entry["pattern"], re.IGNORECASE)
+            rx = re.compile(pattern, re.IGNORECASE)
         except re.error:
             continue
+        seen_patterns.add(pattern)
+        seen_keywords.add(keyword)
         compiled.append({**entry, "regex": rx})
     return compiled
 
@@ -946,6 +1129,7 @@ class Finding:
     recommendation: str
     severity: str
     matched_snippet: str = ""
+    notes: str = ""
 
 
 @dataclass
@@ -1255,6 +1439,7 @@ def parse_panic_log(raw_text: str, source_file: str = "",
                     recommendation=entry["recommendation"],
                     severity=entry["severity"],
                     matched_snippet=snippet.replace("\n", " "),
+                    notes=entry.get("notes", ""),
                 ))
                 seen_components.add(key)
 
@@ -1454,6 +1639,7 @@ def analyze_ocr_text(raw_text: str, source_file: str = "",
                 recommendation=entry["recommendation"],
                 severity=entry["severity"],
                 matched_snippet="",  # OCR-контекст користувачу не показуємо
+                notes=entry.get("notes", ""),
             ))
             seen_components.add(key)
 
@@ -1905,6 +2091,8 @@ def build_text_report(report: DiagnosticReport) -> str:
             lines.append(f"{i}. [{SEVERITY_LABEL.get(f.severity, f.severity)}] Компонент: {f.component}")
             lines.append(f"   Ключове слово: {f.keyword}")
             lines.append(f"   Рекомендація: {f.recommendation}")
+            if f.notes:
+                lines.append(f"   Примітка: {f.notes}")
             if f.matched_snippet:
                 lines.append(f"   Контекст у лозі: ...{f.matched_snippet}...")
     elif report.is_panic_source or is_photo:

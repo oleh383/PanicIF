@@ -26,8 +26,11 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import os
 import signal
+import threading
 import weakref
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import BytesIO
 
 from telegram import Update
@@ -50,6 +53,12 @@ logger = logging.getLogger(__name__)
 # Максимум одночасних важких операцій (аналіз логів / OCR) та ліміт їх часу.
 MAX_CONCURRENT_ANALYSES = 2
 ANALYSIS_TIMEOUT_SECONDS = 120.0
+
+# Мінімальний HTTP health-сервер для Render: Web Service вважається живим лише
+# коли відкрито мережевий порт. Порт береться зі змінної середовища PORT.
+PORT_ENV_VAR = "PORT"
+DEFAULT_HTTP_PORT = 10000
+HTTP_HOST = "0.0.0.0"
 
 # Ковзний ліміт частоти важких запитів на користувача (у пам'яті, без БД).
 _rate_limiter = RateLimiter()
@@ -77,6 +86,67 @@ def _load_dotenv_if_available() -> None:
     except ImportError:
         return
     load_dotenv()
+
+
+def _resolve_http_port(default: int = DEFAULT_HTTP_PORT) -> int:
+    """Порт для health-сервера зі змінної середовища ``PORT``.
+
+    Якщо ``PORT`` не задано або має некоректне значення — повертається
+    ``default`` (типово :data:`DEFAULT_HTTP_PORT`).
+    """
+    raw = os.environ.get(PORT_ENV_VAR, "").strip()
+    if not raw:
+        return default
+    try:
+        port = int(raw)
+    except ValueError:
+        logger.warning("%s=«%s» некоректний — використовую %s", PORT_ENV_VAR, raw, default)
+        return default
+    if not 0 <= port <= 65535:
+        logger.warning("%s=%s поза діапазоном — використовую %s", PORT_ENV_VAR, port, default)
+        return default
+    return port
+
+
+class _HealthHandler(BaseHTTPRequestHandler):
+    """Мінімальний обробник: 200 OK на будь-який GET/HEAD (перевірка порту)."""
+
+    def do_GET(self) -> None:  # noqa: N802 — ім'я вимагає BaseHTTPRequestHandler
+        body = b"PanicIF Bot is running."
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_HEAD(self) -> None:  # noqa: N802 — ім'я вимагає BaseHTTPRequestHandler
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+
+    def log_message(self, format: str, *args) -> None:  # noqa: A002
+        logger.debug("HTTP health-check %s", format % args)
+
+
+def start_http_server(port: int | None = None) -> ThreadingHTTPServer:
+    """Запустити HTTP health-сервер у daemon-потоці (для Render).
+
+    Render надає порт через змінну середовища ``PORT`` і вважає Web Service
+    живим лише коли цей порт відкрито. Сервер не виконує жодної логіки бота —
+    лише відповідає ``200 OK``. Повертає запущений сервер (потрібно для
+    коректного завершення/тестів).
+    """
+    if port is None:
+        port = _resolve_http_port()
+    server = ThreadingHTTPServer((HTTP_HOST, port), _HealthHandler)
+    thread = threading.Thread(
+        target=server.serve_forever,
+        name="panicif-health-http",
+        daemon=True,
+    )
+    thread.start()
+    logger.info("HTTP health-сервер слухає http://%s:%s", HTTP_HOST, server.server_address[1])
+    return server
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -418,6 +488,7 @@ def main() -> None:
         raise SystemExit(1) from exc
 
     logger.info("Запуск PanicIF Bot…")
+    start_http_server()
     application = build_application(token)
     asyncio.run(run_bot(application))
 
