@@ -134,6 +134,7 @@ extract_panic_string_block = CORE.extract_panic_string_block
 classify_log_source = CORE.classify_log_source
 parse_panic_log = CORE.parse_panic_log
 build_text_report = CORE.build_text_report
+build_telegram_report = CORE.build_telegram_report
 # OCR (наявний рушій PanicIF; залежності завантажуються ліниво всередині)
 ocr_image_to_text = CORE.ocr_image_to_text
 analyze_ocr_text = CORE.analyze_ocr_text
@@ -164,6 +165,7 @@ __all__ = [
     "classify_log_source",
     "parse_panic_log",
     "build_text_report",
+    "build_telegram_report",
     "analyze_panic_text",
     "ocr_image_to_text",
     "analyze_ocr_text",

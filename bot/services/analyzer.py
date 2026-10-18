@@ -25,6 +25,7 @@ from app.core.diagnostics import (
     DiagnosticReport,
     analyze_ocr_text,
     analyze_panic_text,
+    build_telegram_report,
     build_text_report,
     classify_log_source,
     extract_panic_string_block,
@@ -267,6 +268,11 @@ def build_report_text(report) -> str:
     return build_text_report(report)
 
 
+def build_telegram_report_text(report) -> str:
+    """Короткий звіт у форматі Telegram (ядро PanicIF, без нових правил)."""
+    return build_telegram_report(report)
+
+
 __all__ = [
     "AnalyzerError",
     "UnsupportedImageError",
@@ -306,4 +312,5 @@ __all__ = [
     "summarize",
     "summarize_photo",
     "build_report_text",
+    "build_telegram_report_text",
 ]

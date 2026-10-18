@@ -151,7 +151,7 @@ from updater import (  # noqa: E402
 #   "severity": "critical" | "warning" | "info"  (впливає на колір картки)
 # }
 
-RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
+RAW_KNOWLEDGE_BASE: List[Dict[str, object]] = [
     # --- А. Живлення, датчики, шлейфи ---
     {
         "pattern": r"Prs0|Pressure Controller|Eiger\.cpp",
@@ -403,157 +403,27 @@ RAW_KNOWLEDGE_BASE: List[Dict[str, str]] = [
         ),
         "severity": "info",
     },
-    # --- Г. Розширення з перекладу "PanicIF_ukrainian_translation" ---
-    # Нові рядки таблиці (ДАНІ -> РЕЗУЛЬТАТ) з колонкою ПРИМІТКИ.
-    {
-        "pattern": r"\bL2C\b|\bLLC\b",
-        "keyword": "L2C / LLC",
-        "component": "Північний підсилювач",
-        "recommendation": "Перевірте передній шлейф і котушку LX у ланцюзі підсилення звуку.",
-        "severity": "warning",
-        "notes": "Зустрічав на багатьох моделях; іноді проблема у передньому "
-                 "шлейфі та пробитій котушці LX у ланцюзі підсилення звуку.",
-    },
-    {
-        "pattern": r"Prev-next|\bLSU\b",
-        "keyword": "Prev-next / LSU",
-        "component": "Кварцовий генератор годинника",
-        "recommendation": "Перевірте/замініть кварцовий генератор (RTC).",
-        "severity": "warning",
-        "notes": "Зустрічав лише на iPhone 5c.",
-    },
-    {
-        "pattern": r"Initproc exited",
-        "keyword": "Initproc exited",
-        "component": "Кварцовий генератор",
-        "recommendation": "Перевірте кварцовий генератор і ланцюг завдання такту.",
-        "severity": "warning",
-        "notes": "",
-    },
-    {
-        "pattern": r"Inva(l|i)d queue element linkage",
-        "keyword": "Invaild queue element linkage",
-        "component": "NAND",
-        "recommendation": "Несправність NAND: DFU-відновлення, далі реболл/заміна NAND.",
-        "severity": "critical",
-        "notes": "",
-    },
-    {
-        "pattern": r"SMC PANIC ASSERTION",
-        "keyword": "SMC PANIC ASSERTION",
-        "component": "Процесор / верхня плата",
-        "recommendation": "Перевірте верхню плату/процесор; типова ознака після втручання або перегріву.",
-        "severity": "critical",
-        "notes": "Зустрічав на моделях iPhone X і новіших.",
-    },
-    {
-        "pattern": r"SEP ROM to glon|SMC DATA ABORT",
-        "keyword": "SEP ROM to glon SMC DATA ABORT",
-        "component": "CPU",
-        "recommendation": "Перевірте процесор; також будь-який елемент, який має сертифікати (SEP).",
-        "severity": "warning",
-        "notes": "Також причиною може бути будь-який елемент, який має сертифікати.",
-    },
-    {
-        "pattern": r"CP_COM_NORM|CP_com_NORM",
-        "keyword": "CP_COM_NORM REQUEST",
-        "component": "CPU / NAND / камера",
-        "recommendation": "Неоднозначна помилка — шукайте в логу додаткові ключові слова.",
-        "severity": "info",
-        "notes": "Неоднозначна помилка, шукайте в логу більше ключових слів.",
-    },
-    {
-        "pattern": r"PMP NMI FIQ",
-        "keyword": "PMP NMI FIQ",
-        "component": "CPU / котушки / КП",
-        "recommendation": "Неоднозначна помилка: перевірте процесор, котушки та контролер живлення.",
-        "severity": "info",
-        "notes": "Неоднозначна помилка.",
-    },
-    {
-        "pattern": r"applesynopsysMIPID",
-        "keyword": "applesynopsysMIPIDSI controller",
-        "component": "Передній шлейф / on-off",
-        "recommendation": "Перевірте передній шлейф і ланцюг живлення/on-off.",
-        "severity": "warning",
-        "notes": "",
-    },
-    {
-        "pattern": r"Anc-postnand",
-        "keyword": "Anc-postnand.c1260 assert failed link",
-        "component": "NAND",
-        "recommendation": "Несправність NAND: DFU-відновлення, далі реболл/заміна NAND.",
-        "severity": "critical",
-        "notes": "",
-    },
-    {
-        "pattern": r"Stacks\+routined",
-        "keyword": "Stacks+routined",
-        "component": "Акумулятор",
-        "recommendation": "Перевірте акумулятор і його контакти.",
-        "severity": "warning",
-        "notes": "Трапляється переважно на iPad.",
-    },
-    {
-        "pattern": r"\bAGXK\b",
-        "keyword": "AGXK",
-        "component": "AGXAccelerator (гіроскоп / акселерометр)",
-        "recommendation": "Перевірте гіроскоп/акселерометр та його шлейф.",
-        "severity": "warning",
-        "notes": "Гіроскоп/акселерометр.",
-    },
-    {
-        "pattern": r"Sleep.{0,2}wake hang detected",
-        "keyword": "Sleep\\wake hang detected",
-        "component": "Wi-Fi / кодек / підсилювачі",
-        "recommendation": "Неоднозначне зависання у сні — шукайте додаткові ключові слова в логу.",
-        "severity": "info",
-        "notes": "Неоднозначна помилка зависання в режимі сну; шукайте ключові слова в логу.",
-    },
-    {
-        "pattern": r"WKDMD ERROR",
-        "keyword": "WKDMD ERROR code 0x2",
-        "component": "Помилка пам'яті",
-        "recommendation": "Під час прошивання отримаєте Error 14 (APFS); перевірте NAND.",
-        "severity": "warning",
-        "notes": "Під час прошивання отримаєте Error 14 (APFS).",
-    },
-    {
-        "pattern": r"Apple PPM",
-        "keyword": "Apple PPM",
-        "component": "Lightning / Tristar / Tigris",
-        "recommendation": "Помилка під час заряджання — перевірте Tristar/Tigris і роз'єм.",
-        "severity": "warning",
-        "notes": "Помилка виникає під час заряджання.",
-    },
-    {
-        "pattern": r"Fatal coherency point error",
-        "keyword": "Fatal coherency point error",
-        "component": "CPU",
-        "recommendation": "Перевірте процесор і пам'ять; типова ознака збою когерентності.",
-        "severity": "warning",
-        "notes": "",
-    },
-    {
-        "pattern": r"\bgnss\b",
-        "keyword": "gnss",
-        "component": "GLONASS / GPS",
-        "recommendation": "Перевірте GPS-модуль та його антену.",
-        "severity": "warning",
-        "notes": "",
-    },
-    {
-        "pattern": r"AOP PANIC",
-        "keyword": "AOP PANIC",
-        "component": "AOP (неоднозначно)",
-        "recommendation": "Шукайте в логу додаткові ключові слова.",
-        "severity": "info",
-        "notes": "Неоднозначна помилка, шукайте ключові слова в логу.",
-    },
-]
+    ]
+# --- Документна база знань (PanicIF_ukrainian_translation.docx) ---
+# Додаткове джерело правил; використовує той самий рушій пошуку, що й наявна
+# база. Дані лежать у app/core/knowledge_base.json (входить до Git і доступний
+# після розгортання на Render без абсолютних шляхів).
+try:  # пакетний запуск (бот / app.core.diagnostics)
+    from app.core.knowledge_base import (
+        compile_rules as _compile_document_rules,
+        normalize_text as _normalize_kb_text,
+    )
+except ImportError:  # запуск як скрипт із каталогу app/
+    from core.knowledge_base import (
+        compile_rules as _compile_document_rules,
+        normalize_text as _normalize_kb_text,
+    )
+
+RAW_KNOWLEDGE_BASE.extend(_compile_document_rules())
 
 
-def _compile_knowledge_base(raw_kb: List[Dict[str, str]]):
+
+def _compile_knowledge_base(raw_kb: List[Dict[str, object]]):
     """Скомпілювати правила та прибрати дублікати.
 
     Стійкість до дублікатів: якщо у :data:`RAW_KNOWLEDGE_BASE` випадково є
@@ -1130,6 +1000,123 @@ class Finding:
     severity: str
     matched_snippet: str = ""
     notes: str = ""
+    # Точний фрагмент, що збігся (для дедуплікації та прозорості).
+    matched_text: str = ""
+    # Метадані документної бази знань (app/core/knowledge_base.json).
+    kb_id: str = ""
+    source: str = ""
+    models: List[str] = field(default_factory=list)
+    generic: bool = False
+    ambiguous: bool = False
+
+
+def _finding_rank(finding: Finding):
+    """Ключ сортування знахідок: спершу специфічні, потім за важливістю.
+
+    Загальний збіг (``generic``) і неоднозначний запис (``ambiguous``) НЕ мають
+    перекривати конкретнішу причину — тому вони опиняються нижче.
+    """
+    return (
+        1 if finding.generic else 0,
+        1 if finding.ambiguous else 0,
+        SEVERITY_ORDER.get(finding.severity, 9),
+    )
+
+
+def _sort_findings(findings: List[Finding]) -> List[Finding]:
+    return sorted(findings, key=_finding_rank)
+
+
+def _dedupe_findings(findings: List[Finding]) -> List[Finding]:
+    """Прибрати справжні дублікати та загальні збіги, покриті конкретнішими.
+
+    1. Знайдений фрагмент (``matched_text``) збігається з точністю до регістру,
+       пробілів і дефісів — залишаємо найспецифічніший запис.
+    2. Загальний запис відкидається, якщо його фрагмент є частиною довшого
+       збігу (напр. ``AOP PANIC`` під ``SD: ... Missing sensor(s): Prs0``).
+    """
+    best: Dict[str, Finding] = {}
+    order: List[str] = []
+    for finding in findings:
+        key = _normalize_kb_text(finding.matched_text or finding.keyword).lower()
+        if key in best:
+            if _finding_rank(finding) < _finding_rank(best[key]):
+                best[key] = finding
+            continue
+        best[key] = finding
+        order.append(key)
+    unique = [best[key] for key in order]
+
+    result: List[Finding] = []
+    for finding in unique:
+        if finding.generic:
+            text = _normalize_kb_text(finding.matched_text).lower()
+            covered = any(
+                (not other.generic)
+                and text
+                and text in _normalize_kb_text(other.matched_text).lower()
+                for other in unique
+            )
+            if covered:
+                continue
+        result.append(finding)
+    return result
+
+    result: List[Finding] = []
+    for finding in unique:
+        if finding.generic:
+            text = _norm2(finding.matched_text).lower()
+
+
+def _match_knowledge_base(search_targets: List[str],
+                          normalized_target: str = "") -> List[Finding]:
+    """Знайти всі збіги у спільній базі знань (наявній + документній).
+
+    Звичайні записи шукаються як і раніше — у наданих ``search_targets``.
+    Документні записи (``normalized=True``) шукаються у нормалізованому тексті
+    (регістр/пробіли/дефіси/переноси зведено), щоб стійко ловити варіанти
+    написання з документа.
+    """
+    findings: List[Finding] = []
+    seen: set = set()
+    for entry in KNOWLEDGE_BASE:
+        key = (entry.get("component", ""), entry.get("keyword", ""))
+        if key in seen:
+            continue
+        regex = entry.get("regex")
+        if regex is None:
+            continue
+        targets = [normalized_target] if entry.get("normalized") else search_targets
+        for target in targets:
+            if not target:
+                continue
+            m = regex.search(target)
+            if not m:
+                continue
+            snippet = target[max(0, m.start() - 40):m.end() + 40]
+            findings.append(Finding(
+                component=entry.get("component", ""),
+                keyword=entry.get("keyword", ""),
+                recommendation=entry.get("recommendation", ""),
+                severity=entry.get("severity", "info"),
+                matched_snippet=snippet,
+                matched_text=m.group(0),
+                notes=entry.get("notes", ""),
+                kb_id=entry.get("kb_id", ""),
+                source=entry.get("source", ""),
+                models=list(entry.get("models") or []),
+                generic=bool(entry.get("generic", False)),
+                ambiguous=bool(entry.get("ambiguous", False)),
+            ))
+            seen.add((entry.get("component", ""), entry.get("keyword", "")))
+            break
+    return findings
+
+
+def _compute_ambiguous(findings: List[Finding]) -> bool:
+    """Чи результат неоднозначний: кілька різних компонентів АБО нечіткий запис."""
+    components = {f.component for f in findings if f.component}
+    return len(components) > 1 or any(f.ambiguous for f in findings)
 
 
 @dataclass
@@ -1147,6 +1134,7 @@ class DiagnosticReport:
     analyzed_part: str = ""            # розмір/опиc проаналізованого блоку (для прозорості)
     ocr_text: str = ""                 # текст, розпізнаний з фото/скріншоту (джерело "photo")
     matched_keywords: List[str] = field(default_factory=list)  # знайдені ключі (джерело "photo")
+    ambiguous: bool = False            # кілька різних причин або неоднозначний запис
 
     @property
     def is_panic_source(self) -> bool:
@@ -1157,17 +1145,26 @@ class DiagnosticReport:
         return self.source_type == "photo"
 
     @property
+    def sorted_findings(self) -> List[Finding]:
+        return _sort_findings(list(self.findings))
+
+    @property
+    def primary_finding(self) -> Optional[Finding]:
+        ordered = self.sorted_findings
+        return ordered[0] if ordered else None
+
+    @property
     def verdict(self) -> str:
         if self.source_type == "photo":
             if not self.findings:
                 return OCR_NO_KEYWORDS_MSG
-            top = sorted(self.findings, key=lambda f: SEVERITY_ORDER.get(f.severity, 9))[0]
+            top = self.sorted_findings[0]
             return f"Ймовірна несправність: {top.component} (Код: {top.keyword})"
         if not self.is_panic_source:
             return "Проблем не виявлено. Panic Full логів не знайдено."
         if not self.findings:
             return "Явних апаратних несправностей за базою ознак не виявлено."
-        top = sorted(self.findings, key=lambda f: SEVERITY_ORDER.get(f.severity, 9))[0]
+        top = self.sorted_findings[0]
         return f"Ймовірна несправність: {top.component} ({top.keyword})"
 
 
@@ -1415,33 +1412,16 @@ def parse_panic_log(raw_text: str, source_file: str = "",
     report.panic_cause = fields.get("panic_cause", "")
 
     search_targets: List[str] = []
+    normalized_target = ""
     if panic_string:
-        search_targets.append(clean_text_for_match(panic_string))
+        cleaned = clean_text_for_match(panic_string)
+        search_targets.append(cleaned)
+        normalized_target = _normalize_kb_text(cleaned)
 
     report.analyzed_part = "panicString"
 
-    seen_components = set()
-    findings: List[Finding] = []
-
-    for target in search_targets:
-        if not target:
-            continue
-        for entry in KNOWLEDGE_BASE:
-            key = (entry["component"], entry["keyword"])
-            if key in seen_components:
-                continue
-            match = entry["regex"].search(target)
-            if match:
-                snippet = target[max(0, match.start() - 40): match.end() + 40].strip()
-                findings.append(Finding(
-                    component=entry["component"],
-                    keyword=entry["keyword"],
-                    recommendation=entry["recommendation"],
-                    severity=entry["severity"],
-                    matched_snippet=snippet.replace("\n", " "),
-                    notes=entry.get("notes", ""),
-                ))
-                seen_components.add(key)
+    findings: List[Finding] = _match_knowledge_base(search_targets, normalized_target)
+    seen_components = {(f.component, f.keyword) for f in findings}
 
     # Розшифровка SMC PANIC - Sensor Array (числові коди моделей 13+)
     if panic_string and "sensor array" in panic_string.lower():
@@ -1453,8 +1433,9 @@ def parse_panic_log(raw_text: str, source_file: str = "",
             seen_components.add((f.component, f.keyword))
             findings.append(f)
 
-    findings.sort(key=lambda f: SEVERITY_ORDER.get(f.severity, 9))
+    findings = _sort_findings(_dedupe_findings(findings))
     report.findings = findings
+    report.ambiguous = _compute_ambiguous(findings)
 
     # Метадані пристрою з виокремлених релевантних полів (не весь лог)
     if fields.get("product"):
@@ -1625,35 +1606,24 @@ def analyze_ocr_text(raw_text: str, source_file: str = "",
     if not target.strip():
         return report
 
-    findings: List[Finding] = []
-    seen_components = set()
-    for entry in KNOWLEDGE_BASE:
-        key = (entry["component"], entry["keyword"])
-        if key in seen_components:
-            continue
-        match = entry["regex"].search(target)
-        if match:
-            findings.append(Finding(
-                component=entry["component"],
-                keyword=entry["keyword"],
-                recommendation=entry["recommendation"],
-                severity=entry["severity"],
-                matched_snippet="",  # OCR-контекст користувачу не показуємо
-                notes=entry.get("notes", ""),
-            ))
-            seen_components.add(key)
+    normalized_target = _normalize_kb_text(target)
+    findings: List[Finding] = _match_knowledge_base([target], normalized_target)
+    for finding in findings:
+        finding.matched_snippet = ""  # OCR-текст користувачу не показуємо
+    seen_components = {(f.component, f.keyword) for f in findings}
 
     # SMC-коди з фото (напр. 0x4000 -> акумулятор). Стійкий розбір: не
     # вимагає ідеально розпізнаного рядка 'sensor array ... is ...'.
-    sensor_findings = decode_sensor_codes_from_photo(raw_text, model_hint=model_hint)
-    for f in sensor_findings:
+    for f in decode_sensor_codes_from_photo(raw_text, model_hint=model_hint):
         if (f.component, f.keyword) in seen_components:
             continue
         seen_components.add((f.component, f.keyword))
+        f.matched_snippet = ""
         findings.append(f)
 
-    findings.sort(key=lambda f: SEVERITY_ORDER.get(f.severity, 9))
+    findings = _sort_findings(_dedupe_findings(findings))
     report.findings = findings
+    report.ambiguous = _compute_ambiguous(findings)
     report.matched_keywords = [f.keyword for f in findings]
     return report
 
@@ -2047,6 +2017,9 @@ class UpdateDownloadWorker(QThread):
 # 5. ЕКСПОРТ ЗВІТУ (TXT / PDF)
 # =====================================================================================
 
+TELEGRAM_MAX_ALTERNATIVES = 6
+
+
 def build_text_report(report: DiagnosticReport) -> str:
     is_photo = report.source_type == "photo"
     lines = []
@@ -2071,6 +2044,30 @@ def build_text_report(report: DiagnosticReport) -> str:
     lines.append("ВЕРДИКТ:")
     lines.append(report.verdict)
     lines.append("-" * 70)
+
+    if report.findings:
+        primary = report.sorted_findings[0]
+        lines.append("КОРОТКИЙ РЕЗУЛЬТАТ (PanicIF):")
+        lines.append(f"Знайдена помилка: {primary.keyword}")
+        lines.append(f"Ймовірний компонент: {primary.component or 'не визначено'}")
+        if primary.notes:
+            lines.append(f"Пояснення: {primary.notes}")
+        if primary.models:
+            lines.append(f"Моделі: {', '.join(primary.models)}")
+        others = report.sorted_findings[1:]
+        if others:
+            lines.append("Додаткові збіги:")
+            for f in others[:TELEGRAM_MAX_ALTERNATIVES]:
+                component = f.component or "не визначено"
+                suffix = f" — {f.notes}" if f.notes else ""
+                lines.append(f"   - {f.keyword} ({component}){suffix}")
+            if len(others) > TELEGRAM_MAX_ALTERNATIVES:
+                lines.append(f"   … та ще {len(others) - TELEGRAM_MAX_ALTERNATIVES}")
+        certainty = "неоднозначний результат" if report.ambiguous else "точний збіг"
+        lines.append(f"Рівень визначеності: {certainty}")
+        if primary.recommendation:
+            lines.append(f"Рекомендація: {primary.recommendation}")
+        lines.append("-" * 70)
 
     if is_photo:
         if report.matched_keywords:
@@ -2103,6 +2100,46 @@ def build_text_report(report: DiagnosticReport) -> str:
     lines.append("Звіт сформовано автоматично. Остаточний діагноз має "
                   "підтверджуватись майстром на основі повторної перевірки.")
     lines.append("=" * 70)
+    return "\n".join(lines)
+
+
+def build_telegram_report(report: DiagnosticReport) -> str:
+    """Короткий звіт для Telegram (стисло й читабельно в мобільному застосунку).
+
+    Формат: знайдена помилка → компонент → пояснення -> додаткові збіги ->
+    рівень визначеності -> рекомендація. За змістом ідентичний ``build_text_report``,
+    лише поданий компактно.
+    """
+    lines = ["PanicIF — результат діагностики", ""]
+    findings = report.sorted_findings
+    if not findings:
+        lines.append(report.verdict)
+        return "\n".join(lines)
+
+    primary = findings[0]
+    lines.append(f"• Знайдена помилка: {primary.keyword}")
+    lines.append(f"• Ймовірний компонент: {primary.component or 'не визначено'}")
+    if primary.notes:
+        lines.append(f"• Пояснення: {primary.notes}")
+    if primary.models:
+        lines.append(f"• Моделі: {', '.join(primary.models)}")
+
+    others = findings[1:]
+    if others:
+        lines.append("• Додаткові збіги:")
+        for f in others[:TELEGRAM_MAX_ALTERNATIVES]:
+            component = f.component or "не визначено"
+            suffix = f" — {f.notes}" if f.notes else ""
+            lines.append(f"   - {f.keyword} ({component}){suffix}")
+        if len(others) > TELEGRAM_MAX_ALTERNATIVES:
+            lines.append(f"   … та ще {len(others) - TELEGRAM_MAX_ALTERNATIVES}")
+
+    certainty = "неоднозначний результат" if report.ambiguous else "точний збіг"
+    lines.append(f"• Рівень визначеності: {certainty}")
+    if report.primary_finding.recommendation:
+        lines.append(f"• Рекомендація: {report.primary_finding.recommendation}")
+    lines.append("")
+    lines.append("Остаточний діагноз має підтвердити майстер.")
     return "\n".join(lines)
 
 

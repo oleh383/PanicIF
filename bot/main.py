@@ -231,18 +231,17 @@ async def _run_blocking(func, *args):
     )
 
 
-async def _send_report(message, summary: str, report_text: str) -> None:
-    """Надіслати звіт: повідомленням, або TXT-файлом, якщо завеликий."""
-    payload = f"{summary}\n\n{report_text}"
-    if len(payload) <= analyzer.MAX_MESSAGE_LENGTH:
-        await message.reply_text(payload)
+async def _send_report(message, report_text: str) -> None:
+    """Надіслати звіт повідомленням, або TXT-файлом, якщо він завеликий."""
+    if len(report_text) <= analyzer.MAX_MESSAGE_LENGTH:
+        await message.reply_text(report_text)
         return
 
     buffer = BytesIO(report_text.encode("utf-8"))
     await message.reply_document(
         document=buffer,
         filename=analyzer.REPORT_FILENAME,
-        caption=summary[: analyzer.MAX_CAPTION_LENGTH],
+        caption=report_text[: analyzer.MAX_CAPTION_LENGTH],
     )
 
 
@@ -286,13 +285,12 @@ async def _process_image(message, data: bytes, file_name: str) -> None:
         return
 
     try:
-        summary = analyzer.summarize_photo(analysis)
         report_text = analyzer.build_report_text(analysis.report)
     except Exception:  # noqa: BLE001 — помилка формування звіту не валить бот
         logger.exception("Помилка формування звіту для зображення")
         await message.reply_text(analyzer.ANALYSIS_ERROR_MESSAGE)
         return
-    await _send_report(message, summary, report_text)
+    await _send_report(message, report_text)
 
 
 async def _process_log(message, data: bytes, file_name: str) -> None:
@@ -315,13 +313,12 @@ async def _process_log(message, data: bytes, file_name: str) -> None:
         return
 
     try:
-        summary = analyzer.summarize(report)
         report_text = analyzer.build_report_text(report)
     except Exception:  # noqa: BLE001 — помилка формування звіту не валить бот
         logger.exception("Помилка формування звіту для логу")
         await message.reply_text(analyzer.ANALYSIS_ERROR_MESSAGE)
         return
-    await _send_report(message, summary, report_text)
+    await _send_report(message, report_text)
 
 
 async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
